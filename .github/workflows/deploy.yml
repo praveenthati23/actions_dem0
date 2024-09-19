@@ -1,0 +1,49 @@
+name: CI/CD Pipeline to EC2
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build # Adjust if you have a specific build script
+
+      - name: Decode PEM Key
+        run: |
+          echo "${{ secrets.PRAVEENTHATI_PRACTICE_SSH_KEY }}" | base64 --decode > /tmp/PRAVEENTHATI_PRACTICE_SSH_KEY
+          chmod 600 /tmp/PRAVEENTHATI_PRACTICE_SSH_KEY
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.PUBLIC_IP }}
+          username: ubuntu # Or ec2-user for Amazon Linux
+          key: /tmp/PRAVEENTHATI_PRACTICE_SSH_KEY
+          script: |
+            cd /var/www/html
+            sudo rm -rf *
+            sudo git clone https://github.com/praveenthati23/actions_dem0.git .
+            sudo npm install
+            sudo npm run build
+            sudo systemctl restart nginx
+
+
+
