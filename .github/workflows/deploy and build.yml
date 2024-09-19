@@ -20,6 +20,9 @@ jobs:
           echo "${{ secrets.PRAVEENTHATI_PRACTICE_SSH_KEY }}" | base64 --decode > /tmp/ec2_key.pem
           chmod 600 /tmp/ec2_key.pem
 
+          - name: List /tmp directory
+          run: ls -l /tmp
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.2
         with:
