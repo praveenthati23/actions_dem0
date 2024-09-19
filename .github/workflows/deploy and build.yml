@@ -1,0 +1,39 @@
+name: CI/CD Pipeline to EC2
+
+on:
+  push:
+    branches: ["master"] # Updated branch name
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Add any other necessary steps for your project build here
+      # e.g., if using Python, Java, etc., include relevant build commands
+
+      - name: Decode SSH Key
+        run: |
+          echo "${{ secrets.PRAVEENTHATI_PRACTICE_SSH_KEY }}" | base64 --decode > /tmp/ec2_key.pem
+          chmod 600 /tmp/ec2_key.pem
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{ secrets.PUBLIC_IP }}
+          username: ubuntu # Or ec2-user for Amazon Linux
+          key: /tmp/ec2_key.pem
+          script: |
+            cd /var/www/html
+            sudo rm -rf *
+            sudo git clone https://github.com/praveenthati23/actions_dem0.git .
+            # Add commands specific to your deployment
+            # For example, if using Python, Java, etc., include relevant build steps here
+            # Example for a Python project:
+            # sudo pip install -r requirements.txt
+            # Example for a Java project:
+            # sudo mvn clean install
+            sudo systemctl restart nginx
